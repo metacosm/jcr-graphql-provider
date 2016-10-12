@@ -74,13 +74,8 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java-servlet</artifactId>
-            <version>0.6.4</version>
+            <version>0.7.1</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java-annotations</artifactId>
-            <version>0.11.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -89,5 +84,4 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
 </project>
