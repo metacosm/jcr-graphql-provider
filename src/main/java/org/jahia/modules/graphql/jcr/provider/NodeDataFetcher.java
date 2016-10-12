@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
 import java.util.List;
 
 /**
@@ -75,9 +76,10 @@ class NodeDataFetcher implements DataFetcher {
             throw new IllegalArgumentException("Should provide at least a node path or identifier");
         }
 
+        Session session = null;
         try {
-            final Session session = queryProvider.getRepository().login();
-            Node node = null;
+            session = queryProvider.getRepository().login(new SimpleCredentials("root", "root1234".toCharArray()));
+            Node node;
             if (id != null) {
                 node = session.getNodeByIdentifier(id);
             } else {
@@ -95,6 +97,10 @@ class NodeDataFetcher implements DataFetcher {
         } catch (RepositoryException e) {
             logger.error("Couldn't retrieve node", e);
             return null;
+        } finally {
+            if(session != null) {
+                session.logout();
+            }
         }
     }
 }
