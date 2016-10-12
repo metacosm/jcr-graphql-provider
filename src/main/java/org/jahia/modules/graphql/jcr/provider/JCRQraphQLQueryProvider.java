@@ -303,7 +303,19 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
     @Override
     public Object context() {
-        return null;
+        Session session = null;
+        try {
+            session = getRepository().login(new SimpleCredentials("root", "root1234".toCharArray()));
+            Node node = session.getNode("/");
+            return new GQLNode(node);
+        } catch (RepositoryException e) {
+            logger.error("Couldn't retrieve root node", e);
+            return null;
+        } finally {
+            if (session != null) {
+                session.logout();
+            }
+        }
     }
 
     public void setRepository(Repository repository) {
