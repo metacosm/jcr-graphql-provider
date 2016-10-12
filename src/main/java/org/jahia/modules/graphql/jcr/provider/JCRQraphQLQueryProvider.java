@@ -82,18 +82,22 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     @Override
     public GraphQLObjectType getQuery() {
 
+        final GraphQLObjectType nodeType = newObject()
+                .name("node")
+                .withInterface(itemInterface)
+                .field(nameField)
+                .field(pathField)
+                .field(typeField)
+                .field(newFieldDefinition()
+                        .name("id")
+                        .type(GraphQLID)
+                        .build())
+                .build();
         final GraphQLObjectType.Builder typesBuilder = newObject()
                 .name("nodes")
                 .field(newFieldDefinition()
                         .name("node")
-                        .type(newObject()
-                                .name("node")
-                                .withInterface(itemInterface)
-                                .field(nameField)
-                                .field(pathField)
-                                .field(typeField)
-                                .build())
-                        .argument(newArgument().name("id").type(GraphQLID).build())
+                        .type(nodeType)
                         .argument(newArgument().name("path").type(GraphQLString).build())
                         .dataFetcher(nodeFetcher)
                         .build());
