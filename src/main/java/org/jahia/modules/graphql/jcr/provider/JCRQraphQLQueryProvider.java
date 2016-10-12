@@ -40,7 +40,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         @Override
         public GraphQLObjectType getType(Object object) {
             GQLItem item = (GQLItem) object;
-            final String typeName = item.type();
+            final String typeName = item.getType();
             GraphQLOutputType type = knownTypes.get(typeName);
             if (type == null) {
                 try {

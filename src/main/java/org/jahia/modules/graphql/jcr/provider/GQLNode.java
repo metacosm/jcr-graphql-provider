@@ -56,7 +56,7 @@ class GQLNode implements GQLItem {
         this.node = node;
     }
 
-    public String name() {
+    public String getName() {
         try {
             return node.getName();
         } catch (RepositoryException e) {
@@ -64,7 +64,7 @@ class GQLNode implements GQLItem {
         }
     }
 
-    public String type() {
+    public String getType() {
         try {
             return node.getPrimaryNodeType().getName();
         } catch (RepositoryException e) {
@@ -72,7 +72,7 @@ class GQLNode implements GQLItem {
         }
     }
 
-    public String path() {
+    public String getPath() {
         try {
             return node.getPath();
         } catch (RepositoryException e) {
@@ -80,7 +80,7 @@ class GQLNode implements GQLItem {
         }
     }
 
-    String id() {
+    public String getId() {
         try {
             return node.getIdentifier();
         } catch (RepositoryException e) {

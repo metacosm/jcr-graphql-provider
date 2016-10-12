@@ -43,20 +43,13 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
-import graphql.annotations.GraphQLField;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.TypeResolver;
-
 /**
  * @author Christophe Laprun
  */
 interface GQLItem {
-    @GraphQLField
-    String name();
+    String getName();
 
-    @GraphQLField
-    String type();
+    String getType();
 
-    @GraphQLField
-    String path();
+    String getPath();
 }
