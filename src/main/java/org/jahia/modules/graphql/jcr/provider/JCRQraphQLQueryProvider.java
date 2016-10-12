@@ -8,9 +8,7 @@ import org.jahia.services.content.nodetypes.NodeTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.PropertyType;
-import javax.jcr.Repository;
-import javax.jcr.RepositoryException;
+import javax.jcr.*;
 import javax.jcr.nodetype.NoSuchNodeTypeException;
 import javax.jcr.nodetype.NodeDefinition;
 import javax.jcr.nodetype.PropertyDefinition;
@@ -74,7 +72,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             .build();
 
     private final GraphQLInterfaceType itemInterface = newInterface()
-            .name("node")
+            .name("item")
             .field(nameField)
             .field(pathField)
             .field(typeField)
