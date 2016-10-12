@@ -103,7 +103,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
         try {
             final ExtendedNodeType type = nodeTypeRegistry.getNodeType("jnt:page");
-            final String typeName = type.getName();
+            final String typeName = escape(type.getName());
             final GraphQLOutputType gqlType = createGraphQLType(type, typeName);
 
             typesBuilder.field(newFieldDefinition()
@@ -137,7 +137,14 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         return typesBuilder.build();
     }
 
+    private String escape(String name) {
+        return name.replace(':', '_');
+    }
+
     private GraphQLOutputType createGraphQLType(ExtendedNodeType type, String typeName) {
+        final String escapedTypeName = escape(typeName);
+        logger.info("Creating " + escapedTypeName);
+
         final NodeDefinition[] children = type.getChildNodeDefinitions();
         final PropertyDefinition[] properties = type.getPropertyDefinitions();
 
@@ -146,7 +153,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         final GraphQLFieldDefinition.Builder childrenField = newFieldDefinition().name("children");
         final GraphQLObjectType.Builder childrenType = newObject().name("children");
         for (NodeDefinition child : children) {
-            final String childName = child.getName();
+            final String childName = escape(child.getName());
 
             if (!"*".equals(childName)) {
                 final String childTypeName = getChildTypeName(child);
@@ -158,10 +165,11 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             } else {
                 final String childTypeName = getChildTypeName(child);
                 if (!multipleChildTypes.contains(childTypeName)) {
-                    logger.info("Creating children/" + childTypeName + "(name) for type " + typeName);
+                    final String escapedChildTypeName = escape(childTypeName);
+                    logger.info("Creating children/" + escapedChildTypeName + "(name) for type " + typeName);
                     childrenType.field(
                             newFieldDefinition()
-                                    .name(childTypeName)
+                                    .name(escapedChildTypeName)
                                     .type(getExistingTypeOrRef(childTypeName))
                                     .argument(newArgument()
                                             .name("name")
@@ -180,7 +188,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         final GraphQLFieldDefinition.Builder propertiesField = newFieldDefinition().name("properties");
         final GraphQLObjectType.Builder propertiesType = newObject().name("properties");
         for (PropertyDefinition property : properties) {
-            final String propertyName = property.getName();
+            final String propertyName = escape(property.getName());
             final int propertyType = property.getRequiredType();
             final boolean multiple = property.isMultiple();
             if (!"*".equals(propertyName)) {
@@ -224,7 +232,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                 }
             }*/
 
-        return new GraphQLObjectType(typeName, description, fields, interfaces);
+        return new GraphQLObjectType(escapedTypeName, description, fields, interfaces);
 //        }
     }
 
@@ -248,7 +256,6 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     private GraphQLOutputType getExistingTypeOrRef(String childTypeName) {
         GraphQLOutputType gqlChildType = knownTypes.get(childTypeName);
         if (gqlChildType == null) {
-            logger.info("Creating " + childTypeName);
             try {
                 final ExtendedNodeType childType = nodeTypeRegistry.getNodeType(childTypeName);
                 gqlChildType = createGraphQLType(childType, childTypeName);
