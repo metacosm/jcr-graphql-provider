@@ -43,7 +43,8 @@
     <artifactId>jcr-graphql-provider</artifactId>
     <name>DX :: GraphQL JCR Provider</name>
     <packaging>bundle</packaging>
-    <description>This is the provider project for the DX GraphQL Core integration project</description>
+    <version>1.0.0-SNAPSHOT</version>
+    <description>This is the provider project for the Jahia DX JCR GraphQL API.</description>
 
     <distributionManagement>
         <repository>
