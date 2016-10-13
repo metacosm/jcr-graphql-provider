@@ -49,42 +49,36 @@ import javax.jcr.RepositoryException;
 /**
  * @author Christophe Laprun
  */
-    private final Node node;
 public class GQLNode implements GQLItem {
+    private final String name;
+    private final String type;
+    private final String path;
+    private final String id;
 
     public GQLNode(Node node) {
-        this.node = node;
+        try {
+            name = node.getName();
+            type = node.getPrimaryNodeType().getName();
+            path = node.getPath();
+            id = node.getIdentifier();
+        } catch (RepositoryException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getName() {
-        try {
-            return node.getName();
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+        return name;
     }
 
     public String getType() {
-        try {
-            return node.getPrimaryNodeType().getName();
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+        return type;
     }
 
     public String getPath() {
-        try {
-            return node.getPath();
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+        return path;
     }
 
     public String getId() {
-        try {
-            return node.getIdentifier();
-        } catch (RepositoryException e) {
-            throw new RuntimeException(e);
-        }
+        return id;
     }
 }
