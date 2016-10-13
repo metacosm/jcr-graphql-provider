@@ -75,7 +75,7 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java-servlet</artifactId>
-            <version>0.7.1</version>
+            <version>0.7.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
