@@ -49,8 +49,8 @@ import javax.jcr.RepositoryException;
 /**
  * @author Christophe Laprun
  */
-class GQLNode implements GQLItem {
     private final Node node;
+public class GQLNode implements GQLItem {
 
     public GQLNode(Node node) {
         this.node = node;

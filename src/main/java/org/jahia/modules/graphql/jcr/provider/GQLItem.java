@@ -46,7 +46,7 @@ package org.jahia.modules.graphql.jcr.provider;
 /**
  * @author Christophe Laprun
  */
-interface GQLItem {
+public interface GQLItem {
     String getName();
 
     String getType();
