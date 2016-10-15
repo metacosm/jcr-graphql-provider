@@ -151,74 +151,86 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         final PropertyDefinition[] properties = type.getPropertyDefinitions();
 
         final List<GraphQLFieldDefinition> fields = new ArrayList<>(2);
-        final Set<String> multipleChildTypes = new HashSet<>(children.length);
-        final GraphQLFieldDefinition.Builder childrenField = newFieldDefinition().name("children");
-        final GraphQLObjectType.Builder childrenType = newObject().name("children");
-        for (NodeDefinition child : children) {
-            final String childName = escape(child.getName());
+        if (children.length > 0) {
+            final Set<String> multipleChildTypes = new HashSet<>(children.length);
+            final GraphQLFieldDefinition.Builder childrenField = newFieldDefinition().name("children");
+            final GraphQLObjectType.Builder childrenType = newObject().name(escapedTypeName + "Children");
+            for (NodeDefinition child : children) {
+                final String childName = escape(child.getName());
 
-            if (!"*".equals(childName)) {
-                final String childTypeName = getChildTypeName(child);
-                GraphQLOutputType gqlChildType = getExistingTypeOrRef(childTypeName);
-                childrenType.field(newFieldDefinition()
-                        .name(childName)
-                        .type(gqlChildType)
-                        .build());
-            } else {
-                final String childTypeName = getChildTypeName(child);
-                if (!multipleChildTypes.contains(childTypeName)) {
-                    final String escapedChildTypeName = escape(childTypeName);
-                    logger.info("Creating children/" + escapedChildTypeName + "(name) for type " + typeName);
-                    childrenType.field(
-                            newFieldDefinition()
-                                    .name(escapedChildTypeName)
-                                    .type(getExistingTypeOrRef(childTypeName))
-                                    .argument(newArgument()
-                                            .name("name")
-                                            .type(GraphQLString)
-                                            .build())
-                                    .build()
-                    );
-                    multipleChildTypes.add(childTypeName);
+                if (!"*".equals(childName)) {
+                    final String childTypeName = getChildTypeName(child);
+                    GraphQLOutputType gqlChildType = getExistingTypeOrRef(childTypeName);
+                    childrenType.field(newFieldDefinition()
+                            .name(childName)
+                            .type(gqlChildType)
+                            .build());
+                } else {
+                    final String childTypeName = getChildTypeName(child);
+                    if (!multipleChildTypes.contains(childTypeName)) {
+                        final String escapedChildTypeName = escape(childTypeName);
+                        logger.info("Creating children/" + escapedChildTypeName + "(name) for type " + typeName);
+                        childrenType.field(
+                                newFieldDefinition()
+                                        .name(escapedChildTypeName)
+                                        .type(getExistingTypeOrRef(childTypeName))
+                                        .argument(newArgument()
+                                                .name("name")
+                                                .type(GraphQLString)
+                                                .build())
+                                        .build()
+                        );
+                        multipleChildTypes.add(childTypeName);
+                    }
                 }
             }
+            childrenField.type(childrenType.build());
+            fields.add(childrenField.build());
         }
-        childrenField.type(childrenType.build());
-        fields.add(childrenField.build());
 
-        final Set<String> multiplePropertyTypes = new HashSet<>(properties.length);
-        final GraphQLFieldDefinition.Builder propertiesField = newFieldDefinition().name("properties");
-        final GraphQLObjectType.Builder propertiesType = newObject().name("properties");
-        for (PropertyDefinition property : properties) {
-            final String propertyName = escape(property.getName());
-            final int propertyType = property.getRequiredType();
-            final boolean multiple = property.isMultiple();
-            if (!"*".equals(propertyName)) {
-                propertiesType.field(newFieldDefinition()
-                        .name(propertyName)
-                        .type(getGraphQLType(propertyType, multiple))
-                        .build());
-            } else {
-                final String propertyTypeName = PropertyType.nameFromValue(propertyType);
-                final String fieldName = propertyTypeName + "Properties";
-                if (!multiplePropertyTypes.contains(fieldName)) {
-                    logger.info("Creating " + fieldName + "(name) for type " + typeName);
-                    propertiesType.field(
-                            newFieldDefinition()
-                                    .name(fieldName)
-                                    .type(getGraphQLType(propertyType, multiple))
-                                    .argument(newArgument()
-                                            .name("name")
-                                            .type(GraphQLString)
-                                            .build())
-                                    .build()
-                    );
-                    multiplePropertyTypes.add(fieldName);
+        if (properties.length > 0) {
+            final Set<String> multiplePropertyTypes = new HashSet<>(properties.length);
+            final GraphQLFieldDefinition.Builder propertiesField = newFieldDefinition().name("properties");
+            final GraphQLObjectType.Builder propertiesType = newObject().name(escapedTypeName + "properties");
+            for (PropertyDefinition property : properties) {
+                final String propertyName = escape(property.getName());
+                final int propertyType = property.getRequiredType();
+                final boolean multiple = property.isMultiple();
+                if (!"*".equals(propertyName)) {
+                    propertiesType.field(newFieldDefinition()
+                            .name(propertyName)
+                            .type(getGraphQLType(propertyType, multiple))
+                            .build());
+                } else {
+                    final String propertyTypeName = PropertyType.nameFromValue(propertyType);
+                    final String fieldName = propertyTypeName + "Properties";
+                    if (!multiplePropertyTypes.contains(fieldName)) {
+                        logger.info("Creating " + fieldName + "(name) for type " + typeName);
+                        propertiesType.field(
+                                newFieldDefinition()
+                                        .name(fieldName)
+                                        .type(getGraphQLType(propertyType, multiple))
+                                        .argument(newArgument()
+                                                .name("name")
+                                                .type(GraphQLString)
+                                                .build())
+                                        .build()
+                        );
+                        multiplePropertyTypes.add(fieldName);
+                    }
                 }
             }
+            propertiesField.type(propertiesType.build());
+            fields.add(propertiesField.build());
         }
-        propertiesField.type(propertiesType.build());
-        fields.add(propertiesField.build());
+
+        fields.add(nameField);
+        fields.add(pathField);
+        fields.add(typeField);
+        fields.add(newFieldDefinition()
+                .name("id")
+                .type(GraphQLID)
+                .build());
 
         final String description = type.getDescription(DEFAULT);
 
