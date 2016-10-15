@@ -18,8 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static graphql.Scalars.*;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
-import static graphql.schema.GraphQLInterfaceType.newInterface;
 import static graphql.schema.GraphQLObjectType.newObject;
+import static graphql.schema.GraphQLUnionType.newUnionType;
 
 /**
  * A GraphQL query provider to access DX underlying JCR repository.
@@ -71,42 +71,18 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             .type(GraphQLString)
             .build();
 
-    private final GraphQLInterfaceType itemInterface = newInterface()
-            .name("item")
-            .field(nameField)
-            .field(pathField)
-            .field(typeField)
-            .typeResolver(itemResolver)
-            .build();
-
     @Override
     public GraphQLObjectType getQuery() {
-
-        final GraphQLObjectType nodeType = newObject()
-                .name("node")
-                .withInterface(itemInterface)
-                .field(nameField)
-                .field(pathField)
-                .field(typeField)
-                .field(newFieldDefinition()
-                        .name("id")
-                        .type(GraphQLID)
-                        .build())
-                .build();
+        final GraphQLUnionType.Builder nodeTypeBuilder = newUnionType().name("node").typeResolver(itemResolver);
         final GraphQLObjectType.Builder typesBuilder = newObject()
-                .name("nodes")
-                .field(newFieldDefinition()
-                        .name("node")
-                        .type(nodeType)
-                        .argument(newArgument().name("path").type(GraphQLString).build())
-                        .dataFetcher(nodeFetcher)
-                        .build());
-
+                .name("nodes");
 
         try {
             final ExtendedNodeType type = nodeTypeRegistry.getNodeType("jnt:page");
             final String typeName = escape(type.getName());
-            final GraphQLOutputType gqlType = createGraphQLType(type, typeName);
+            final GraphQLObjectType gqlType = createGraphQLType(type, typeName);
+
+            nodeTypeBuilder.possibleType(gqlType);
 
             typesBuilder.field(newFieldDefinition()
                     .name(typeName)
@@ -136,6 +112,12 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             e.printStackTrace();
         }
 
+        typesBuilder.field(newFieldDefinition()
+                .name("node")
+                .type(nodeTypeBuilder.build())
+                .argument(newArgument().name("path").type(GraphQLString).build())
+                .dataFetcher(nodeFetcher)
+                .build());
         return typesBuilder.build();
     }
 
@@ -143,7 +125,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         return name.replace(':', '_');
     }
 
-    private GraphQLOutputType createGraphQLType(ExtendedNodeType type, String typeName) {
+    private GraphQLObjectType createGraphQLType(ExtendedNodeType type, String typeName) {
         final String escapedTypeName = escape(typeName);
         logger.info("Creating " + escapedTypeName);
 
@@ -191,7 +173,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         if (properties.length > 0) {
             final Set<String> multiplePropertyTypes = new HashSet<>(properties.length);
             final GraphQLFieldDefinition.Builder propertiesField = newFieldDefinition().name("properties");
-            final GraphQLObjectType.Builder propertiesType = newObject().name(escapedTypeName + "properties");
+            final GraphQLObjectType.Builder propertiesType = newObject().name(escapedTypeName + "Properties");
             for (PropertyDefinition property : properties) {
                 final String propertyName = escape(property.getName());
                 final int propertyType = property.getRequiredType();
