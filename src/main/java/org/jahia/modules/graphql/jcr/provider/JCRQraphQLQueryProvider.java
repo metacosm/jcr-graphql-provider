@@ -122,8 +122,12 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         return typesBuilder.build();
     }
 
-    private String escape(String name) {
+    static String escape(String name) {
         return name.replace(':', '_');
+    }
+
+    static String unescape(String name) {
+        return name.replace('_', ':');
     }
 
     private GraphQLObjectType createGraphQLType(ExtendedNodeType type, String typeName) {
