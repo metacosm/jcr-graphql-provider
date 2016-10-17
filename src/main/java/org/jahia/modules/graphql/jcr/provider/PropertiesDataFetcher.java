@@ -43,43 +43,49 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
+import graphql.language.Argument;
+import graphql.language.Field;
+import graphql.language.StringValue;
 import graphql.schema.DataFetchingEnvironment;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import java.util.List;
 
 /**
  * @author Christophe Laprun
  */
-class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
-    NodeDataFetcher(JCRQraphQLQueryProvider queryProvider) {
+public class PropertiesDataFetcher extends JCRDataFetcher<Object> {
+    public PropertiesDataFetcher(JCRQraphQLQueryProvider queryProvider) {
         super(queryProvider);
     }
 
     @Override
-    protected boolean isEnvironmentValid(DataFetchingEnvironment environment) {
-        final String id = environment.getArgument("id");
-        final String path = environment.getArgument("path");
+    protected Object perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
+        GQLItems parent = (GQLItems) environment.getSource();
+        final Node node = session.getNodeByIdentifier(parent.getParentId());
 
-        if (id == null && path == null) {
-            throw new IllegalArgumentException("Should provide at least a node path or identifier");
+        final List<Field> fields = environment.getFields();
+        for (Field field : fields) {
+            final String name = JCRQraphQLQueryProvider.unescape(field.getName());
+
+            final List<Argument> arguments = field.getArguments();
+            final Property property;
+            if (!arguments.isEmpty()) {
+                final Argument argument = arguments.get(0);
+                final StringValue value = (StringValue) argument.getValue();
+                property = node.getProperty(value.getValue());
+            } else {
+                property = node.getProperty(name);
+            }
+
+            if(!property.isMultiple()) {
+                return property.getString();
+            }
         }
 
-        return true;
-    }
-
-    @Override
-    protected GQLNode perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
-        Node node;
-        final String id = environment.getArgument("id");
-        if (id != null) {
-            node = session.getNodeByIdentifier(id);
-        } else {
-            final String path = environment.getArgument("path");
-            node = session.getNode(path);
-        }
-
-        return new GQLNode(node);
+        return null;
     }
 }

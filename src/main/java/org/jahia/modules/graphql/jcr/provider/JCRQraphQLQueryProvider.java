@@ -35,6 +35,8 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     private NodeTypeRegistry nodeTypeRegistry;
     private final Map<String, GraphQLOutputType> knownTypes = new ConcurrentHashMap<>();
     private final DataFetcher nodeFetcher = new NodeDataFetcher(this);
+    private final DataFetcher childrenFetcher = new ChildrenDataFetcher(this);
+    private final DataFetcher propertiesFetcher = new PropertiesDataFetcher(this);
     private final TypeResolver itemResolver = new TypeResolver() {
         @Override
         public GraphQLObjectType getType(Object object) {
@@ -151,6 +153,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                     childrenType.field(newFieldDefinition()
                             .name(childName)
                             .type(gqlChildType)
+                            .dataFetcher(childrenFetcher)
                             .build());
                 } else {
                     final String childTypeName = getChildTypeName(child);
@@ -161,6 +164,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                                 newFieldDefinition()
                                         .name(escapedChildTypeName)
                                         .type(getExistingTypeOrRef(childTypeName))
+                                        .dataFetcher(childrenFetcher)
                                         .argument(newArgument()
                                                 .name("name")
                                                 .type(GraphQLString)
@@ -186,6 +190,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                 if (!"*".equals(propertyName)) {
                     propertiesType.field(newFieldDefinition()
                             .name(propertyName)
+                            .dataFetcher(propertiesFetcher)
                             .type(getGraphQLType(propertyType, multiple))
                             .build());
                 } else {
@@ -197,6 +202,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                                 newFieldDefinition()
                                         .name(fieldName)
                                         .type(getGraphQLType(propertyType, multiple))
+                                        .dataFetcher(propertiesFetcher)
                                         .argument(newArgument()
                                                 .name("name")
                                                 .type(GraphQLString)

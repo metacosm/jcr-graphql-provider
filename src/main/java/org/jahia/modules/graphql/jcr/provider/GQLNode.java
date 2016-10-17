@@ -93,4 +93,12 @@ public class GQLNode implements GQLItem {
     public String getId() {
         return id;
     }
+
+    public GQLItems getChildren() {
+        return items;
+    }
+
+    public GQLItems getProperties() {
+        return items;
+    }
 }

@@ -43,43 +43,20 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
+import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 /**
  * @author Christophe Laprun
  */
-class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
-    NodeDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        super(queryProvider);
+public class GQLItems {
+    private final GQLNode parent;
+
+    public GQLItems(GQLNode gqlNode) {
+        parent = gqlNode;
     }
 
-    @Override
-    protected boolean isEnvironmentValid(DataFetchingEnvironment environment) {
-        final String id = environment.getArgument("id");
-        final String path = environment.getArgument("path");
-
-        if (id == null && path == null) {
-            throw new IllegalArgumentException("Should provide at least a node path or identifier");
-        }
-
-        return true;
-    }
-
-    @Override
-    protected GQLNode perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
-        Node node;
-        final String id = environment.getArgument("id");
-        if (id != null) {
-            node = session.getNodeByIdentifier(id);
-        } else {
-            final String path = environment.getArgument("path");
-            node = session.getNode(path);
-        }
-
-        return new GQLNode(node);
+    String getParentId() {
+        return parent.getId();
     }
 }

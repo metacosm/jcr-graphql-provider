@@ -43,43 +43,57 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
+import graphql.language.Field;
+import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+import java.util.List;
 
 /**
  * @author Christophe Laprun
  */
-class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
-    NodeDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        super(queryProvider);
+public abstract class JCRDataFetcher<T> implements DataFetcher {
+    protected static Logger logger = LoggerFactory.getLogger(JCRDataFetcher.class);
+
+    private final JCRQraphQLQueryProvider queryProvider;
+
+    JCRDataFetcher(JCRQraphQLQueryProvider queryProvider) {
+        this.queryProvider = queryProvider;
     }
 
     @Override
-    protected boolean isEnvironmentValid(DataFetchingEnvironment environment) {
-        final String id = environment.getArgument("id");
-        final String path = environment.getArgument("path");
+    public Object get(DataFetchingEnvironment environment) {
+        if (isEnvironmentValid(environment)) {
+            Session session = null;
+            try {
+                session = queryProvider.getRepository().getCurrentUserSession();
 
-        if (id == null && path == null) {
-            throw new IllegalArgumentException("Should provide at least a node path or identifier");
+                return perform(environment, session);
+
+            } catch (RepositoryException e) {
+                logger.error("Couldn't retrieve node", e);
+                return null;
+            } finally {
+                if (session != null) {
+                    session.logout();
+                }
+            }
         }
 
+        return null;
+    }
+
+
+    protected boolean isEnvironmentValid(DataFetchingEnvironment environment) {
         return true;
     }
 
-    @Override
-    protected GQLNode perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
-        Node node;
-        final String id = environment.getArgument("id");
-        if (id != null) {
-            node = session.getNodeByIdentifier(id);
-        } else {
-            final String path = environment.getArgument("path");
-            node = session.getNode(path);
-        }
-
-        return new GQLNode(node);
-    }
+    protected abstract T perform(DataFetchingEnvironment environment, Session session) throws RepositoryException;
 }
+

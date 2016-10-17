@@ -43,43 +43,47 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
+import graphql.language.Argument;
+import graphql.language.Field;
+import graphql.language.StringValue;
 import graphql.schema.DataFetchingEnvironment;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+import java.util.List;
 
 /**
  * @author Christophe Laprun
  */
-class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
-    NodeDataFetcher(JCRQraphQLQueryProvider queryProvider) {
+public class ChildrenDataFetcher extends JCRDataFetcher<GQLNode> {
+
+    public ChildrenDataFetcher(JCRQraphQLQueryProvider queryProvider) {
         super(queryProvider);
     }
 
     @Override
-    protected boolean isEnvironmentValid(DataFetchingEnvironment environment) {
-        final String id = environment.getArgument("id");
-        final String path = environment.getArgument("path");
-
-        if (id == null && path == null) {
-            throw new IllegalArgumentException("Should provide at least a node path or identifier");
-        }
-
-        return true;
-    }
-
-    @Override
     protected GQLNode perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
-        Node node;
-        final String id = environment.getArgument("id");
-        if (id != null) {
-            node = session.getNodeByIdentifier(id);
-        } else {
-            final String path = environment.getArgument("path");
-            node = session.getNode(path);
+        GQLItems parent = (GQLItems) environment.getSource();
+        final Node node = session.getNodeByIdentifier(parent.getParentId());
+
+        final List<Field> fields = environment.getFields();
+        for (Field field : fields) {
+            final String name = JCRQraphQLQueryProvider.unescape(field.getName());
+
+
+            final List<Argument> arguments = field.getArguments();
+            if (!arguments.isEmpty()) {
+                final Argument argument = arguments.get(0);
+                final StringValue value = (StringValue) argument.getValue();
+                final Node child = node.getNode(value.getValue());
+                return new GQLNode(child);
+            } else {
+                return new GQLNode(node.getNode(name));
+            }
         }
 
-        return new GQLNode(node);
+        return null;
     }
 }
