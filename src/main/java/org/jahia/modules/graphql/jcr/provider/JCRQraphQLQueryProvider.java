@@ -201,7 +201,8 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                         propertiesType.field(
                                 newFieldDefinition()
                                         .name(fieldName)
-                                        .type(getGraphQLType(propertyType, multiple))
+                                        .type(getGraphQLType(propertyType, false)) // todo: not sure what to do here
+                                        // since we want to retrieve an unknown property which might end up multiple…
                                         .dataFetcher(propertiesFetcher)
                                         .argument(newArgument()
                                                 .name("name")
