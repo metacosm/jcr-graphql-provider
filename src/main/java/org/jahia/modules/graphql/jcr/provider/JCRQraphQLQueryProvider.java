@@ -3,6 +3,7 @@ package org.jahia.modules.graphql.jcr.provider;
 import graphql.schema.*;
 import graphql.servlet.GraphQLQueryProvider;
 import org.jahia.api.Constants;
+import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
     private static final Locale DEFAULT = Locale.getDefault();
 
-    private Repository repository;
+    private JCRSessionFactory repository;
     private NodeTypeRegistry nodeTypeRegistry;
     private final Map<String, GraphQLOutputType> knownTypes = new ConcurrentHashMap<>();
     private final DataFetcher nodeFetcher = new NodeDataFetcher(this);
@@ -314,11 +315,11 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         }
     }
 
-    public void setRepository(Repository repository) {
+    public void setRepository(JCRSessionFactory repository) {
         this.repository = repository;
     }
 
-    public Repository getRepository() {
+    public JCRSessionFactory getRepository() {
         return repository;
     }
 
