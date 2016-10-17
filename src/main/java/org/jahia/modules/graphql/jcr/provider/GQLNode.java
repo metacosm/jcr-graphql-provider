@@ -54,16 +54,28 @@ public class GQLNode implements GQLItem {
     private final String type;
     private final String path;
     private final String id;
+    private final GQLItems items;
 
-    public GQLNode(Node node) {
+    static final GQLNode ROOT = new GQLNode("", "rep:root", "/", "cafebabe-cafe-babe-cafe-babecafebabe");
+
+    GQLNode(Node node) {
         try {
             name = node.getName();
             type = node.getPrimaryNodeType().getName();
             path = node.getPath();
             id = node.getIdentifier();
+            items = new GQLItems(this);
         } catch (RepositoryException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private GQLNode(String name, String type, String path, String id) {
+        this.name = name;
+        this.type = type;
+        this.path = path;
+        this.id = id;
+        items = new GQLItems(this);
     }
 
     public String getName() {
