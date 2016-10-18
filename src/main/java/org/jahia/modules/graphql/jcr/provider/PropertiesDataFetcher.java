@@ -47,45 +47,40 @@ import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.language.StringValue;
 import graphql.schema.DataFetchingEnvironment;
+import org.jahia.services.content.JCRNodeWrapper;
+import org.jahia.services.content.JCRSessionWrapper;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Christophe Laprun
  */
-public class PropertiesDataFetcher extends JCRDataFetcher<Object> {
+public class PropertiesDataFetcher extends ItemsDataFetcher<Object> {
     public PropertiesDataFetcher(JCRQraphQLQueryProvider queryProvider) {
         super(queryProvider);
     }
 
     @Override
-    protected Object perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
-        GQLItems parent = (GQLItems) environment.getSource();
-        final Node node = session.getNodeByIdentifier(parent.getParentId());
-
-        final List<Field> fields = environment.getFields();
-        for (Field field : fields) {
-            final String name = JCRQraphQLQueryProvider.unescape(field.getName());
-
-            final List<Argument> arguments = field.getArguments();
-            final Property property;
-            if (!arguments.isEmpty()) {
-                final Argument argument = arguments.get(0);
-                final StringValue value = (StringValue) argument.getValue();
-                property = node.getProperty(value.getValue());
-            } else {
-                property = node.getProperty(name);
-            }
-
-            if(!property.isMultiple()) {
-                return property.getString();
-            }
+    protected Object perform(DataFetchingEnvironment environment, JCRSessionWrapper session, JCRNodeWrapper node, String childName) throws RepositoryException {
+        final Property property;
+        if (node.hasProperty(childName)) {
+            property = node.getProperty(childName);
+        } else {
+            // check for translation
+            final Locale locale = session.getLocale();
+            final Node i18N = node.getI18N(locale);
+            property = i18N.getProperty(childName);
         }
 
-        return null;
+        if (!property.isMultiple()) {
+            return property.getString();
+        } else {
+            throw new RuntimeException("TODO: Multiple property, not sure how to deal with it! ¯\\_(ツ)_/¯");
+        }
     }
 }

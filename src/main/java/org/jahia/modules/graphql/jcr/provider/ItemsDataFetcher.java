@@ -43,11 +43,9 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jcr.RepositoryException;
 import java.util.Locale;
@@ -55,46 +53,41 @@ import java.util.Locale;
 /**
  * @author Christophe Laprun
  */
-public abstract class JCRDataFetcher<T> implements DataFetcher {
-    private static Logger logger = LoggerFactory.getLogger(JCRDataFetcher.class);
+abstract class ItemsDataFetcher<T> extends JCRDataFetcher<T> {
+    protected String ws;
+    protected Locale lang;
 
-    protected final JCRQraphQLQueryProvider queryProvider;
-
-    JCRDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        this.queryProvider = queryProvider;
+    ItemsDataFetcher(JCRQraphQLQueryProvider queryProvider) {
+        super(queryProvider);
     }
 
     @Override
-    public Object get(DataFetchingEnvironment environment) {
-        if (isEnvironmentValid(environment)) {
-            JCRSessionWrapper session = null;
-            try {
-                session = queryProvider.getRepository().getCurrentUserSession(getWs(), getLang());
+    protected T perform(DataFetchingEnvironment environment, JCRSessionWrapper session) throws RepositoryException {
+        GQLItems parent = (GQLItems) environment.getSource();
+        final GQLNode itemsParent = parent.getParent();
+        ws = itemsParent.getWs();
+        lang = itemsParent.getLang();
 
-                return perform(environment, session);
+        final JCRNodeWrapper node = session.getNodeByIdentifier(itemsParent.getId());
 
-            } catch (RepositoryException e) {
-                logger.error("Couldn't retrieve node", e);
-                return null;
-            } finally {
-                if (session != null) {
-                    session.logout();
-                }
-            }
+        String name = environment.getArgument("name");
+        if (name == null) {
+            name = JCRQraphQLQueryProvider.unescape(environment.getFields().get(0).getName());
         }
 
-        return null;
+        return perform(environment, session, node, name);
     }
 
+    protected abstract T perform(DataFetchingEnvironment environment, JCRSessionWrapper session, JCRNodeWrapper node,
+                                 String childName) throws RepositoryException;
 
-    protected boolean isEnvironmentValid(DataFetchingEnvironment environment) {
-        return true;
+    @Override
+    protected String getWs() {
+        return ws;
     }
 
-    protected abstract T perform(DataFetchingEnvironment environment, JCRSessionWrapper session) throws RepositoryException;
-
-    protected abstract String getWs();
-
-    protected abstract Locale getLang();
+    @Override
+    protected Locale getLang() {
+        return lang;
+    }
 }
-

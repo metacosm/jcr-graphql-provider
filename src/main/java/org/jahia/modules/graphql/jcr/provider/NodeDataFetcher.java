@@ -44,15 +44,20 @@
 package org.jahia.modules.graphql.jcr.provider;
 
 import graphql.schema.DataFetchingEnvironment;
+import org.jahia.api.Constants;
+import org.jahia.services.content.JCRSessionWrapper;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
+import java.util.Locale;
 
 /**
  * @author Christophe Laprun
  */
 class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
+    private String ws;
+    private Locale lang;
+
     NodeDataFetcher(JCRQraphQLQueryProvider queryProvider) {
         super(queryProvider);
     }
@@ -66,11 +71,16 @@ class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
             throw new IllegalArgumentException("Should provide at least a node path or identifier");
         }
 
+        final String wsArg = environment.getArgument("ws");
+        this.ws = wsArg == null ? Constants.EDIT_WORKSPACE : ws;
+        String langArg = environment.getArgument("lang");
+        lang = langArg == null ? Locale.ENGLISH : Locale.forLanguageTag(langArg);
+
         return true;
     }
 
     @Override
-    protected GQLNode perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
+    protected GQLNode perform(DataFetchingEnvironment environment, JCRSessionWrapper session) throws RepositoryException {
         Node node;
         final String id = environment.getArgument("id");
         if (id != null) {
@@ -80,6 +90,16 @@ class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
             node = session.getNode(path);
         }
 
-        return new GQLNode(node);
+        return new GQLNode(node, ws, lang);
+    }
+
+    @Override
+    protected String getWs() {
+        return ws;
+    }
+
+    @Override
+    protected Locale getLang() {
+        return lang;
     }
 }

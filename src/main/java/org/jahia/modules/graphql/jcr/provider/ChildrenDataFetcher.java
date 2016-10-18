@@ -43,47 +43,23 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
-import graphql.language.Argument;
-import graphql.language.Field;
-import graphql.language.StringValue;
 import graphql.schema.DataFetchingEnvironment;
+import org.jahia.services.content.JCRNodeWrapper;
+import org.jahia.services.content.JCRSessionWrapper;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
-import java.util.List;
 
 /**
  * @author Christophe Laprun
  */
-public class ChildrenDataFetcher extends JCRDataFetcher<GQLNode> {
+public class ChildrenDataFetcher extends ItemsDataFetcher<GQLNode> {
 
     public ChildrenDataFetcher(JCRQraphQLQueryProvider queryProvider) {
         super(queryProvider);
     }
 
     @Override
-    protected GQLNode perform(DataFetchingEnvironment environment, Session session) throws RepositoryException {
-        GQLItems parent = (GQLItems) environment.getSource();
-        final Node node = session.getNodeByIdentifier(parent.getParentId());
-
-        final List<Field> fields = environment.getFields();
-        for (Field field : fields) {
-            final String name = JCRQraphQLQueryProvider.unescape(field.getName());
-
-
-            final List<Argument> arguments = field.getArguments();
-            if (!arguments.isEmpty()) {
-                final Argument argument = arguments.get(0);
-                final StringValue value = (StringValue) argument.getValue();
-                final Node child = node.getNode(value.getValue());
-                return new GQLNode(child);
-            } else {
-                return new GQLNode(node.getNode(name));
-            }
-        }
-
-        return null;
+    protected GQLNode perform(DataFetchingEnvironment environment, JCRSessionWrapper session, JCRNodeWrapper node, String childName) throws RepositoryException {
+        return new GQLNode(node.getNode(childName), ws, lang);
     }
 }

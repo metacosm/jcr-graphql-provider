@@ -9,7 +9,8 @@ import org.jahia.services.content.nodetypes.NodeTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.*;
+import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NoSuchNodeTypeException;
 import javax.jcr.nodetype.NodeDefinition;
 import javax.jcr.nodetype.PropertyDefinition;
@@ -27,6 +28,9 @@ import static graphql.schema.GraphQLUnionType.newUnionType;
  */
 public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
+    private static final GraphQLEnumType WORKSPACES_ENUM = GraphQLEnumType.newEnum().name("workspaces").value("DEFAULT")
+            .value("LIVE")
+            .build();
     private static Logger logger = LoggerFactory.getLogger(JCRQraphQLQueryProvider.class);
 
     private static final Locale DEFAULT = Locale.getDefault();
@@ -119,6 +123,8 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                 .name("node")
                 .type(nodeTypeBuilder.build())
                 .argument(newArgument().name("path").type(GraphQLString).build())
+                .argument(newArgument().name("ws").type(WORKSPACES_ENUM).build())
+                .argument(newArgument().name("lang").type(GraphQLString).build())
                 .dataFetcher(nodeFetcher)
                 .build());
         return typesBuilder.build();
@@ -201,8 +207,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                         propertiesType.field(
                                 newFieldDefinition()
                                         .name(fieldName)
-                                        .type(getGraphQLType(propertyType, false)) // todo: not sure what to do here
-                                        // since we want to retrieve an unknown property which might end up multiple…
+                                        .type(getGraphQLType(propertyType, false))
                                         .dataFetcher(propertiesFetcher)
                                         .argument(newArgument()
                                                 .name("name")

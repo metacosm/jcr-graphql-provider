@@ -43,9 +43,6 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-
 /**
  * @author Christophe Laprun
  */
@@ -56,7 +53,7 @@ public class GQLItems {
         parent = gqlNode;
     }
 
-    String getParentId() {
-        return parent.getId();
+    GQLNode getParent() {
+        return parent;
     }
 }

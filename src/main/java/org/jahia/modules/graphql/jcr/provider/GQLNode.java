@@ -43,8 +43,11 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
+import org.jahia.api.Constants;
+
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import java.util.Locale;
 
 /**
  * @author Christophe Laprun
@@ -55,16 +58,20 @@ public class GQLNode implements GQLItem {
     private final String path;
     private final String id;
     private final GQLItems items;
+    private final String ws;
+    private final Locale lang;
 
     static final GQLNode ROOT = new GQLNode("", "rep:root", "/", "cafebabe-cafe-babe-cafe-babecafebabe");
 
-    GQLNode(Node node) {
+    GQLNode(Node node, String ws, Locale lang) {
         try {
             name = node.getName();
             type = node.getPrimaryNodeType().getName();
             path = node.getPath();
             id = node.getIdentifier();
             items = new GQLItems(this);
+            this.ws = ws;
+            this.lang = lang;
         } catch (RepositoryException e) {
             throw new RuntimeException(e);
         }
@@ -75,6 +82,8 @@ public class GQLNode implements GQLItem {
         this.type = type;
         this.path = path;
         this.id = id;
+        this.ws = Constants.EDIT_WORKSPACE;
+        this.lang = Locale.ENGLISH;
         items = new GQLItems(this);
     }
 
@@ -100,5 +109,13 @@ public class GQLNode implements GQLItem {
 
     public GQLItems getProperties() {
         return items;
+    }
+
+    public String getWs() {
+        return ws;
+    }
+
+    public Locale getLang() {
+        return lang;
     }
 }
