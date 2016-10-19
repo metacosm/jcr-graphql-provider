@@ -90,6 +90,11 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
                 typesBuilder.field(newFieldDefinition()
                         .name(typeName)
+                        .argument(newArgument().name("path").type(GraphQLString).build())
+                        .argument(newArgument().name("id").type(GraphQLID).build())
+                        .argument(newArgument().name("ws").type(WORKSPACES_ENUM).build())
+                        .argument(newArgument().name("lang").type(GraphQLString).build())
+                        .dataFetcher(nodeFetcher)
                         .type(gqlType)
                         .build());
 
