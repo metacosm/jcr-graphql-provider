@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NoSuchNodeTypeException;
 import javax.jcr.nodetype.NodeDefinition;
 import javax.jcr.nodetype.PropertyDefinition;
@@ -42,6 +41,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     private JCRSessionFactory repository;
     private NodeTypeRegistry nodeTypeRegistry;
     private final Map<String, GraphQLOutputType> knownTypes = new ConcurrentHashMap<>();
+    private final Set<String> unresolved = new HashSet<>();
     private final DataFetcher nodeFetcher = new NodeDataFetcher(this);
     private final DataFetcher childrenFetcher = new ChildrenDataFetcher(this);
     private final DataFetcher propertiesFetcher = new PropertiesDataFetcher(this);
@@ -89,39 +89,23 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         final GraphQLObjectType.Builder typesBuilder = newObject()
                 .name(QUERY_NAME);
 
-        try {
-            final ExtendedNodeType type = nodeTypeRegistry.getNodeType("jnt:page");
+        final NodeTypeRegistry.JahiaNodeTypeIterator nodeTypes = nodeTypeRegistry.getAllNodeTypes();
+        for (ExtendedNodeType type : nodeTypes) {
             final String typeName = escape(type.getName());
-            final GraphQLObjectType gqlType = createGraphQLType(type, typeName);
+            if (!knownTypes.containsKey(typeName)) {
+                final GraphQLObjectType gqlType = createGraphQLType(type, typeName);
 
-            nodeTypeBuilder.possibleType(gqlType);
+                nodeTypeBuilder.possibleType(gqlType);
 
-            typesBuilder.field(newFieldDefinition()
-                    .name(typeName)
-                    .type(gqlType)
-                    .build());
+                typesBuilder.field(newFieldDefinition()
+                        .name(typeName)
+                        .type(gqlType)
+                        .build());
 
-            knownTypes.put(typeName, gqlType);
-
-            /*final NodeTypeIterator nodeTypes = nodeTypeRegistry.getPrimaryNodeTypes();
-            while (nodeTypes.hasNext()) {
-                final ExtendedNodeType type = (ExtendedNodeType) nodeTypes.nextNodeType();
-                final String typeName = type.getName();
-
-                if (typeName.equals("jnt:page") && !knownTypes.containsKey(typeName)) {
-                    final GraphQLOutputType gqlType = createGraphQLType(type, typeName);
-
-                    typesBuilder.field(newFieldDefinition()
-                            .name(typeName)
-                            .type(gqlType)
-                            .build());
-
-                    knownTypes.put(typeName, gqlType);
-                }
-            }*/
-
-        } catch (RepositoryException e) {
-            e.printStackTrace();
+                knownTypes.put(typeName, gqlType);
+            } else {
+                logger.info("Already generated " + typeName);
+            }
         }
 
         typesBuilder.field(newFieldDefinition()
@@ -155,6 +139,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     private GraphQLObjectType createGraphQLType(ExtendedNodeType type, String typeName) {
         final String escapedTypeName = escape(typeName);
         logger.info("Creating " + escapedTypeName);
+        unresolved.add(escapedTypeName);
 
         final NodeDefinition[] children = type.getChildNodeDefinitions();
         final PropertyDefinition[] properties = type.getPropertyDefinitions();
@@ -247,20 +232,11 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
         final String description = type.getDescription(DEFAULT);
 
-        /*if (type.isAbstract()) {
-            return new GraphQLInterfaceType(typeName, description, fields, itemResolver);
-        } else {*/
-        final Set<ExtendedNodeType> superTypes = type.getSupertypeSet();
-        List<GraphQLInterfaceType> interfaces = new ArrayList<>(superTypes.size());
-            /*for (ExtendedNodeType superType : superTypes) {
-                final GraphQLOutputType typeOrRef = getExistingTypeOrRef(superType.getName());
-                if (typeOrRef instanceof GraphQLInterfaceType) {
-                    interfaces.add((GraphQLInterfaceType) typeOrRef);
-                }
-            }*/
+        final GraphQLObjectType objectType = new GraphQLObjectType(escapedTypeName, description, fields, Collections.<GraphQLInterfaceType>emptyList());
 
-        return new GraphQLObjectType(escapedTypeName, description, fields, interfaces);
-//        }
+        unresolved.remove(escapedTypeName);
+
+        return objectType;
     }
 
     private String getChildTypeName(NodeDefinition child) {
@@ -283,12 +259,17 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     private GraphQLOutputType getExistingTypeOrRef(String childTypeName) {
         GraphQLOutputType gqlChildType = knownTypes.get(childTypeName);
         if (gqlChildType == null) {
-            try {
-                final ExtendedNodeType childType = nodeTypeRegistry.getNodeType(childTypeName);
-                gqlChildType = createGraphQLType(childType, childTypeName);
-                knownTypes.put(childTypeName, gqlChildType);
-            } catch (NoSuchNodeTypeException e) {
-                throw new RuntimeException(e);
+            final String escapedChildName = escape(childTypeName);
+            if (unresolved.contains(escapedChildName)) {
+                gqlChildType = new GraphQLTypeReference(escapedChildName);
+            } else {
+                try {
+                    final ExtendedNodeType childType = nodeTypeRegistry.getNodeType(childTypeName);
+                    gqlChildType = createGraphQLType(childType, childTypeName);
+                    knownTypes.put(childTypeName, gqlChildType);
+                } catch (NoSuchNodeTypeException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return gqlChildType;
