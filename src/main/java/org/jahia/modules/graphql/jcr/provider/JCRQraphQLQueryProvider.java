@@ -50,7 +50,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         public GraphQLObjectType getType(Object object) {
             GQLItem item = (GQLItem) object;
             final String typeName = item.getType();
-            GraphQLOutputType type = knownTypes.get(typeName);
+            GraphQLOutputType type = knownTypes.get(escape(typeName));
 
             if (type instanceof GraphQLObjectType) {
                 return (GraphQLObjectType) type;
@@ -257,7 +257,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                 try {
                     final ExtendedNodeType childType = nodeTypeRegistry.getNodeType(childTypeName);
                     gqlChildType = createGraphQLType(childType, childTypeName);
-                    knownTypes.put(childTypeName, gqlChildType);
+                    knownTypes.put(escapedChildName, gqlChildType);
                 } catch (NoSuchNodeTypeException e) {
                     throw new RuntimeException(e);
                 }
