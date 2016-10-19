@@ -33,6 +33,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     private static final GraphQLEnumType WORKSPACES_ENUM = GraphQLEnumType.newEnum().name("workspaces").value("DEFAULT")
             .value("LIVE")
             .build();
+    private static final String QUERY_NAME = "nodes";
     private static Logger logger = LoggerFactory.getLogger(JCRQraphQLQueryProvider.class);
     private static Matcher VALID_NAME = Pattern.compile("^[_a-zA-Z][_a-zA-Z0-9]*$").matcher("");
 
@@ -85,7 +86,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     public GraphQLObjectType getQuery() {
         final GraphQLUnionType.Builder nodeTypeBuilder = newUnionType().name("node").typeResolver(itemResolver);
         final GraphQLObjectType.Builder typesBuilder = newObject()
-                .name("nodes");
+                .name(QUERY_NAME);
 
         try {
             final ExtendedNodeType type = nodeTypeRegistry.getNodeType("jnt:page");
@@ -325,6 +326,11 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     @Override
     public Object context() {
         return GQLNode.ROOT;
+    }
+
+    @Override
+    public String getName() {
+        return QUERY_NAME;
     }
 
     public void setRepository(JCRSessionFactory repository) {
