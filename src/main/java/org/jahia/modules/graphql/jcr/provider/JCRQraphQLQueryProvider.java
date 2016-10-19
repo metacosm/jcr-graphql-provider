@@ -84,6 +84,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
     @Override
     public GraphQLObjectType getQuery() {
+        final long start = System.currentTimeMillis();
         final GraphQLUnionType.Builder nodeTypeBuilder = newUnionType().name("node").typeResolver(itemResolver);
         final GraphQLObjectType.Builder typesBuilder = newObject()
                 .name(QUERY_NAME);
@@ -132,7 +133,11 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                 .argument(newArgument().name("lang").type(GraphQLString).build())
                 .dataFetcher(nodeFetcher)
                 .build());
-        return typesBuilder.build();
+        final GraphQLObjectType types = typesBuilder.build();
+
+        long duration = System.currentTimeMillis() - start;
+        logger.info("Generated " + knownTypes.size() + " types in " + duration + " ms");
+        return types;
     }
 
     static String escape(String name) {
@@ -174,7 +179,6 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                     final String childTypeName = getChildTypeName(child);
                     if (!multipleChildTypes.contains(childTypeName)) {
                         final String escapedChildTypeName = escape(childTypeName);
-                        logger.info("Creating children/" + escapedChildTypeName + "(name) for type " + typeName);
                         childrenType.field(
                                 newFieldDefinition()
                                         .name(escapedChildTypeName)
@@ -212,7 +216,6 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
                     final String propertyTypeName = PropertyType.nameFromValue(propertyType);
                     final String fieldName = propertyTypeName + "Properties";
                     if (!multiplePropertyTypes.contains(fieldName)) {
-                        logger.info("Creating " + fieldName + "(name) for type " + typeName);
                         propertiesType.field(
                                 newFieldDefinition()
                                         .name(fieldName)
