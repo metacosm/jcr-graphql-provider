@@ -16,6 +16,8 @@ import javax.jcr.nodetype.NodeDefinition;
 import javax.jcr.nodetype.PropertyDefinition;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static graphql.Scalars.*;
 import static graphql.schema.GraphQLArgument.newArgument;
@@ -32,6 +34,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             .value("LIVE")
             .build();
     private static Logger logger = LoggerFactory.getLogger(JCRQraphQLQueryProvider.class);
+    private static Matcher VALID_NAME = Pattern.compile("^[_a-zA-Z][_a-zA-Z0-9]*$").matcher("");
 
     private static final Locale DEFAULT = Locale.getDefault();
 
@@ -132,11 +135,15 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     }
 
     static String escape(String name) {
-        return name.replace(':', '_');
+        name = name.replace(":", "__").replace(".", "___");
+        if (!VALID_NAME.reset(name).matches()) {
+            logger.error("Invalid name: " + name);
+        }
+        return name;
     }
 
     static String unescape(String name) {
-        return name.replace('_', ':');
+        return name.replace("___", ".").replace("__", ":");
     }
 
     private GraphQLObjectType createGraphQLType(ExtendedNodeType type, String typeName) {
