@@ -51,15 +51,6 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             GQLItem item = (GQLItem) object;
             final String typeName = item.getType();
             GraphQLOutputType type = knownTypes.get(typeName);
-            if (type == null) {
-                try {
-                    final ExtendedNodeType nodeType = nodeTypeRegistry.getNodeType(typeName);
-                    type = createGraphQLType(nodeType, typeName);
-                    knownTypes.put(typeName, type);
-                } catch (NoSuchNodeTypeException e) {
-                    throw new IllegalArgumentException("Unknown type " + typeName);
-                }
-            }
 
             if (type instanceof GraphQLObjectType) {
                 return (GraphQLObjectType) type;
