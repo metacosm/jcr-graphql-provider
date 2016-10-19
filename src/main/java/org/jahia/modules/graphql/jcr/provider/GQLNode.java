@@ -118,4 +118,24 @@ public class GQLNode implements GQLItem {
     public Locale getLang() {
         return lang;
     }
+
+    @Override
+    public String toString() {
+        return type + " node id:" + id + " path:" + path + " name: " + name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GQLNode)) return false;
+
+        GQLNode gqlNode = (GQLNode) o;
+
+        return getId().equals(gqlNode.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
+    }
 }
