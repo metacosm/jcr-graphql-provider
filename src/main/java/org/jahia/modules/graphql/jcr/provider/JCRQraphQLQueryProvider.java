@@ -165,13 +165,14 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             final GraphQLFieldDefinition.Builder childrenField = newFieldDefinition().name("children");
             final GraphQLObjectType.Builder childrenType = newObject().name(escapedTypeName + "Children");
             for (NodeDefinition child : children) {
-                final String childName = escape(child.getName());
+                final String childName = child.getName();
 
                 if (!"*".equals(childName)) {
+                    final String escapedChildName = escape(childName);
                     final String childTypeName = getChildTypeName(child);
                     GraphQLOutputType gqlChildType = getExistingTypeOrRef(childTypeName);
                     childrenType.field(newFieldDefinition()
-                            .name(childName)
+                            .name(escapedChildName)
                             .type(gqlChildType)
                             .dataFetcher(childrenFetcher)
                             .build());
@@ -203,12 +204,13 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
             final GraphQLFieldDefinition.Builder propertiesField = newFieldDefinition().name("properties");
             final GraphQLObjectType.Builder propertiesType = newObject().name(escapedTypeName + "Properties");
             for (PropertyDefinition property : properties) {
-                final String propertyName = escape(property.getName());
+                final String propName = property.getName();
                 final int propertyType = property.getRequiredType();
                 final boolean multiple = property.isMultiple();
-                if (!"*".equals(propertyName)) {
+                if (!"*".equals(propName)) {
+                    final String escapedPropName = escape(propName);
                     propertiesType.field(newFieldDefinition()
-                            .name(propertyName)
+                            .name(escapedPropName)
                             .dataFetcher(propertiesFetcher)
                             .type(getGraphQLType(propertyType, multiple))
                             .build());
