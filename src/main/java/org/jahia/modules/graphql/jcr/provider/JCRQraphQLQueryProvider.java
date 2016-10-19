@@ -95,7 +95,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
                 knownTypes.put(typeName, gqlType);
             } else {
-                logger.info("Already generated " + typeName);
+                logger.debug("Already generated {}", typeName);
             }
         }
 
@@ -129,7 +129,7 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
     private GraphQLObjectType createGraphQLType(ExtendedNodeType type, String typeName) {
         final String escapedTypeName = escape(typeName);
-        logger.info("Creating " + escapedTypeName);
+        logger.debug("Creating {}", escapedTypeName);
         unresolved.add(escapedTypeName);
 
         final NodeDefinition[] children = type.getChildNodeDefinitions();
