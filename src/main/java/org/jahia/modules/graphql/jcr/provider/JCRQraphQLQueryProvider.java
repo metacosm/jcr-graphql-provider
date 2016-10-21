@@ -40,12 +40,12 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
 
     private JCRSessionFactory repository;
     private NodeTypeRegistry nodeTypeRegistry;
-    private final Map<String, GraphQLOutputType> knownTypes = new ConcurrentHashMap<>();
+    private static final Map<String, GraphQLOutputType> knownTypes = new ConcurrentHashMap<>();
     private final Set<String> unresolved = new HashSet<>();
     private final DataFetcher nodeFetcher = new NodeDataFetcher(this);
     private final DataFetcher childrenFetcher = new ChildrenDataFetcher(this);
     private final DataFetcher propertiesFetcher = new PropertiesDataFetcher(this);
-    private final TypeResolver itemResolver = new TypeResolver() {
+    private static final TypeResolver itemResolver = new TypeResolver() {
         @Override
         public GraphQLObjectType getType(Object object) {
             GQLItem item = (GQLItem) object;
@@ -71,6 +71,19 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
     private static final GraphQLFieldDefinition typeField = newFieldDefinition()
             .name("type")
             .type(GraphQLString)
+            .build();
+    private static final GraphQLFieldDefinition idField = newFieldDefinition()
+            .name("id")
+            .type(GraphQLID)
+            .build();
+    private static final GraphQLInterfaceType genericType = GraphQLInterfaceType.newInterface()
+            .name("generic")
+            .typeResolver(itemResolver)
+            .field(nameField)
+            .field(pathField)
+            .field(typeField)
+            .field(idField)
+            .description("A generic interface to minimal node information")
             .build();
 
     @Override
@@ -221,14 +234,12 @@ public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
         fields.add(nameField);
         fields.add(pathField);
         fields.add(typeField);
-        fields.add(newFieldDefinition()
-                .name("id")
-                .type(GraphQLID)
-                .build());
+        fields.add(idField);
 
         final String description = type.getDescription(DEFAULT);
 
-        final GraphQLObjectType objectType = new GraphQLObjectType(escapedTypeName, description, fields, Collections.<GraphQLInterfaceType>emptyList());
+        final GraphQLObjectType objectType = new GraphQLObjectType(escapedTypeName, description, fields, Collections
+                .singletonList(genericType));
 
         unresolved.remove(escapedTypeName);
 
