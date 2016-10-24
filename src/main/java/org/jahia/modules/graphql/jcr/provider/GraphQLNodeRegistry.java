@@ -320,16 +320,16 @@ public class GraphQLNodeRegistry {
         return childTypeName;
     }
 
-    private GraphQLOutputType getExistingTypeOrRef(String childTypeName) {
-        GraphQLOutputType gqlChildType = knownTypes.get(childTypeName);
+    private GraphQLOutputType getExistingTypeOrRef(String unescapedChildTypeName) {
+        final String escapedChildName = escape(unescapedChildTypeName);
+        GraphQLOutputType gqlChildType = knownTypes.get(escapedChildName);
         if (gqlChildType == null) {
-            final String escapedChildName = escape(childTypeName);
             if (unresolved.contains(escapedChildName)) {
                 gqlChildType = new GraphQLTypeReference(escapedChildName);
             } else {
                 try {
-                    final ExtendedNodeType childType = nodeTypeRegistry.getNodeType(childTypeName);
-                    gqlChildType = createGraphQLType(childType, childTypeName);
+                    final ExtendedNodeType childType = nodeTypeRegistry.getNodeType(unescapedChildTypeName);
+                    gqlChildType = createGraphQLType(childType, unescapedChildTypeName);
                     knownTypes.put(escapedChildName, gqlChildType);
                 } catch (NoSuchNodeTypeException e) {
                     throw new RuntimeException(e);
