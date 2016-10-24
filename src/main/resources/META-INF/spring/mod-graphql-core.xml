@@ -6,9 +6,13 @@
 
                            http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
-    <bean id="dxJCRGraphQLProvider" class="org.jahia.modules.graphql.jcr.provider.JCRQraphQLQueryProvider">
+    <bean id="gqlNodeRegistry" class="org.jahia.modules.graphql.jcr.provider.GraphQLNodeRegistry">
         <property name="repository" ref="jcrSessionFactory"/>
         <property name="nodeTypeRegistry" ref="nodeTypeRegistry"/>
+    </bean>
+
+    <bean id="dxJCRGraphQLProvider" class="org.jahia.modules.graphql.jcr.provider.JCRQraphQLQueryProvider">
+        <property name="registry" ref="gqlNodeRegistry"/>
     </bean>
 
     <osgi:service ref="dxJCRGraphQLProvider" auto-export="interfaces"/>

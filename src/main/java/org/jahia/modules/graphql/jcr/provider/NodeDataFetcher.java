@@ -58,8 +58,8 @@ class NodeDataFetcher extends JCRDataFetcher<GQLNode> {
     private String ws;
     private Locale lang;
 
-    NodeDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        super(queryProvider);
+    NodeDataFetcher(GraphQLNodeRegistry registry) {
+        super(registry);
     }
 
     @Override

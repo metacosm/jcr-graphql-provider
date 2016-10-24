@@ -43,9 +43,6 @@
  */
 package org.jahia.modules.graphql.jcr.provider;
 
-import graphql.language.Argument;
-import graphql.language.Field;
-import graphql.language.StringValue;
 import graphql.schema.DataFetchingEnvironment;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionWrapper;
@@ -53,16 +50,14 @@ import org.jahia.services.content.JCRSessionWrapper;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import java.util.List;
 import java.util.Locale;
 
 /**
  * @author Christophe Laprun
  */
 public class PropertiesDataFetcher extends ItemsDataFetcher<Object> {
-    public PropertiesDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        super(queryProvider);
+    public PropertiesDataFetcher(GraphQLNodeRegistry registry) {
+        super(registry);
     }
 
     @Override

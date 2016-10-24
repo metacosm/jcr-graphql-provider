@@ -57,8 +57,8 @@ abstract class ItemsDataFetcher<T> extends JCRDataFetcher<T> {
     protected String ws;
     protected Locale lang;
 
-    ItemsDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        super(queryProvider);
+    ItemsDataFetcher(GraphQLNodeRegistry registry) {
+        super(registry);
     }
 
     @Override
@@ -72,7 +72,7 @@ abstract class ItemsDataFetcher<T> extends JCRDataFetcher<T> {
 
         String name = environment.getArgument("name");
         if (name == null) {
-            name = JCRQraphQLQueryProvider.unescape(environment.getFields().get(0).getName());
+            name = GraphQLNodeRegistry.unescape(environment.getFields().get(0).getName());
         }
 
         return perform(environment, session, node, name);

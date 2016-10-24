@@ -58,10 +58,10 @@ import java.util.Locale;
 public abstract class JCRDataFetcher<T> implements DataFetcher {
     private static Logger logger = LoggerFactory.getLogger(JCRDataFetcher.class);
 
-    protected final JCRQraphQLQueryProvider queryProvider;
+    protected final GraphQLNodeRegistry registry;
 
-    JCRDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        this.queryProvider = queryProvider;
+    JCRDataFetcher(GraphQLNodeRegistry registry) {
+        this.registry = registry;
     }
 
     @Override
@@ -69,7 +69,7 @@ public abstract class JCRDataFetcher<T> implements DataFetcher {
         if (isEnvironmentValid(environment)) {
             JCRSessionWrapper session = null;
             try {
-                session = queryProvider.getRepository().getCurrentUserSession(getWs(), getLang());
+                session = registry.getRepository().getCurrentUserSession(getWs(), getLang());
 
                 return perform(environment, session);
 

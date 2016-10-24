@@ -54,8 +54,8 @@ import javax.jcr.RepositoryException;
  */
 public class ChildrenDataFetcher extends ItemsDataFetcher<GQLNode> {
 
-    public ChildrenDataFetcher(JCRQraphQLQueryProvider queryProvider) {
-        super(queryProvider);
+    public ChildrenDataFetcher(GraphQLNodeRegistry registry) {
+        super(registry);
     }
 
     @Override
