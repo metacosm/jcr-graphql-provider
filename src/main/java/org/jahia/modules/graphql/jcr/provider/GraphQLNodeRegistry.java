@@ -48,6 +48,7 @@ import org.jahia.api.Constants;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.nodetypes.ExtendedNodeType;
 import org.jahia.services.content.nodetypes.NodeTypeRegistry;
+import org.jahia.settings.SettingsBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,10 +186,13 @@ public class GraphQLNodeRegistry {
         return types;
     }
 
+    private static boolean validateNames() {
+        return SettingsBean.getInstance().isDevelopmentMode();
+    }
 
     static String escape(String name) {
         name = name.replace(":", "__").replace(".", "___");
-        if (!VALID_NAME.reset(name).matches()) {
+        if (validateNames() && !VALID_NAME.reset(name).matches()) {
             logger.error("Invalid name: " + name);
         }
         return name;
