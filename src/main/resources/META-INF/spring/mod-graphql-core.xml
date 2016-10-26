@@ -11,7 +11,7 @@
         <property name="nodeTypeRegistry" ref="nodeTypeRegistry"/>
     </bean>
 
-    <bean id="dxJCRGraphQLProvider" class="org.jahia.modules.graphql.jcr.provider.JCRQraphQLQueryProvider">
+    <bean id="dxJCRGraphQLProvider" class="org.jahia.modules.graphql.jcr.provider.JCRGraphQLQueryProvider">
         <property name="registry" ref="gqlNodeRegistry"/>
     </bean>
 

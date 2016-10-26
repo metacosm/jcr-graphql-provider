@@ -6,7 +6,7 @@ import graphql.servlet.GraphQLQueryProvider;
 /**
  * A GraphQL query provider to access DX underlying JCR repository.
  */
-public class JCRQraphQLQueryProvider implements GraphQLQueryProvider {
+public class JCRGraphQLQueryProvider implements GraphQLQueryProvider {
 
     private GraphQLNodeRegistry registry;
 

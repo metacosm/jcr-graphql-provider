@@ -75,7 +75,7 @@ public class GraphQLNodeRegistry {
             .value("LIVE")
             .build();
     public static final String QUERY_NAME = "nodes";
-    private static Logger logger = LoggerFactory.getLogger(JCRQraphQLQueryProvider.class);
+    private static Logger logger = LoggerFactory.getLogger(JCRGraphQLQueryProvider.class);
     private static Matcher VALID_NAME = Pattern.compile("^[_a-zA-Z][_a-zA-Z0-9]*$").matcher("");
 
     private static final Locale DEFAULT = Locale.getDefault();
